@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Management System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+
+    /* NAV */
+    nav {
+      background: #1e3a5f;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav h1 { font-size: 20px; letter-spacing: 1px; }
+    nav button {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* LOGIN */
+    #loginPage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e3a5f, #2980b9);
+    }
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      width: 380px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .login-box h2 { text-align: center; margin-bottom: 8px; color: #1e3a5f; font-size: 24px; }
+    .login-box p { text-align: center; color: #888; margin-bottom: 24px; font-size: 14px; }
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      background: #1e3a5f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .login-box button:hover { background: #2980b9; }
+    .error-msg { color: #e74c3c; font-size: 13px; margin-top: 8px; text-align: center; }
+
+    /* DASHBOARD */
+    .dashboard { padding: 24px 32px; }
+    .welcome { margin-bottom: 24px; }
+    .welcome h2 { font-size: 22px; color: #1e3a5f; }
+    .welcome p { color: #888; font-size: 14px; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 10px 20px;
+      border: 2px solid #1e3a5f;
+      background: white;
+      color: #1e3a5f;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .tab-btn.active { background: #1e3a5f; color: white; }
+
+    /* TAB CONTENT */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .card h3 { margin-bottom: 16px; color: #1e3a5f; font-size: 16px; border-bottom: 2px solid #f0f4f8; padding-bottom: 10px; }
+
+    /* FORM */
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .form-row input, .form-row select {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn-primary { background: #1e3a5f; color: white; }
+    .btn-success { background: #27ae60; color: white; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-warning { background: #f39c12; color: white; }
+    .btn:hover { opacity: 0.9; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #1e3a5f; color: white; padding: 10px 12px; text-align: left; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f0f4f8; }
+    tr:hover td { background: #f8fafc; }
+
+    /* BADGE */
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-green { background: #d4efdf; color: #27ae60; }
+    .badge-red { background: #fadbd8; color: #e74c3c; }
+    .badge-orange { background: #fdebd0; color: #f39c12; }
+    .badge-blue { background: #d6eaf8; color: #2980b9; }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 24px;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    #toast.success { background: #27ae60; }
+    #toast.error { background: #e74c3c; }
+
+    .stats-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .stat-card {
+      flex: 1;
+      min-width: 140px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .stat-card .number { font-size: 32px; font-weight: 700; color: #1e3a5f; }
+    .stat-card .label { font-size: 13px; color: #888; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="page active">
+  <div class="login-box">
+    <h2>📚 Library MS</h2>
+    <p>Sign in to continue</p>
+    <input type="email" id="loginEmail" placeholder="Email" />
+    <input type="password" id="loginPassword" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <p class="error-msg" id="loginError"></p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appPage" class="page">
+  <nav>
+    <h1>📚 Library Management System</h1>
+    <button onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="dashboard">
+    <div class="welcome">
+      <h2 id="welcomeText">Welcome!</h2>
+      <p id="roleText"></p>
+    </div>
+
+    <!-- LIBRARIAN TABS -->
+    <div id="librarianTabs" style="display:none">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard', this)">Dashboard</button>
+        <button class="tab-btn" onclick="switchTab('manageBooks', this)">Manage Books</button>
+        <button class="tab-btn" onclick="switchTab('issueReturn', this)">Issue / Return</button>
+        <button class="tab-btn" onclick="switchTab('loans', this)">All Loans</button>
+        <button class="tab-btn" onclick="switchTab('bookRequests', this)">Book Requests</button>
+        <button class="tab-btn" onclick="switchTab('manageUsers', this)">Users</button>
+      </div>
+
+      <!-- DASHBOARD TAB -->
+      <div id="tab-dashboard" class="tab-content active">
+        <div class="stats-row">
+          <div class="stat-card"><div class="number" id="statBooks">-</div><div class="label">Total Books</div></div>
+          <div class="stat-card"><div class="number" id="statLoans">-</div><div class="label">Active Loans</div></div>
+          <div class="stat-card"><div class="number" id="statOverdue">-</div><div class="label">Overdue</div></div>
+          <div class="stat-card"><div class="number" id="statRequests">-</div><div class="label">Pending Requests</div></div>
+        </div>
+      </div>
+
+      <!-- MANAGE BOOKS TAB -->
+      <div id="tab-manageBooks" class="tab-content">
+        <div class="card">
+          <h3>Add New Book</h3>
+          <div class="form-row">
+            <input type="text" id="bookTitle" placeholder="Title" />
+            <input type="text" id="bookAuthor" placeholder="Author" />
+          </div>
+          <div class="form-row">
+            <input type="text" id="bookIsbn" placeholder="ISBN (optional)" />
+            <input type="number" id="bookCopies" placeholder="Total Copies" min="1" />
+          </div>
+          <button class="btn btn-primary" onclick="addBook()">Add Book</button>
+        </div>
+        <div class="card">
+          <h3>All Books</h3>
+          <table id="booksTable">
+            <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>ISBN</th><th>Total</th><th>Available</th><th>Status</th></tr></thead>
+            <tbody id="booksBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ISSUE / RETURN TAB -->
+      <div id="tab-issueReturn" class="tab-content">
+        <div class="card">
+          <h3>Issue a Book</h3>
+          <div class="form-row">
+            <input type="number" id="issueUserId" placeholder="Student User ID" />
+            <input type="number" id="issueBookId" placeholder="Book ID" />
+          </div>
+          <button class="btn btn-success" onclick="issueBook()">Issue Book</button>
+        </div>
+        <div class="card">
+          <h3>Return a Book</h3>
+          <div class="form-row">
+            <input type="number" id="returnLoanId" placeholder="Loan ID" />
+          </div>
+          <button class="btn btn-warning" onclick="returnBook()">Return Book</button>
+          <div id="returnResult" style="margin-top:14px; font-size:14px; color:#27ae60;"></div>
+        </div>
+      </div>
+
+      <!-- LOANS TAB -->
+      <div id="tab-loans" class="tab-content">
+        <div class="card">
+          <h3>All Loans</h3>
+          <div style="margin-bottom:12px; display:flex; gap:8px;">
+            <button class="btn btn-primary" onclick="loadLoans()">All</button>
+            <button class="btn btn-warning" onclick="loadLoans('issued')">Issued</button>
+            <button class="btn btn-danger" onclick="loadLoans('overdue')">Overdue</button>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Student ID</th><th>Book ID</th><th>Issue Date</th><th>Due Date</th><th>Status</th><th>Fine</th></tr></thead>
+            <tbody id="loansBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BOOK REQUESTS TAB -->
+      <div id="tab-bookRequests" class="tab-content">
+        <div class="card">
+          <h3>Student Book Requests</h3>
+          <table>
+            <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Student ID</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="requestsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USERS TAB -->
+      <div id="tab-manageUsers" class="tab-content">
+        <div class="card">
+          <h3>All Users</h3>
+          <div style="margin-bottom:12px; display:flex; gap:8px;">
+            <button class="btn btn-primary" onclick="loadUsers()">All</button>
+            <button class="btn btn-primary" onclick="loadUsers('student')">Students</button>
+            <button class="btn btn-primary" onclick="loadUsers('librarian')">Librarians</button>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Active</th></tr></thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT TABS -->
+    <div id="studentTabs" style="display:none">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('catalog', this)">Browse Books</button>
+        <button class="tab-btn" onclick="switchTab('myLoans', this)">My Loans</button>
+        <button class="tab-btn" onclick="switchTab('requestBook', this)">Request a Book</button>
+      </div>
+
+      <!-- CATALOG TAB -->
+      <div id="tab-catalog" class="tab-content active">
+        <div class="card">
+          <h3>Available Books</h3>
+          <table>
+            <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Available</th><th>Total</th><th>Expected Return</th><th>Waitlist</th><th>Action</th></tr></thead>
+            <tbody id="catalogBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MY LOANS TAB -->
+      <div id="tab-myLoans" class="tab-content">
+        <div class="card">
+          <h3>My Loans</h3>
+          <table>
+            <thead><tr><th>ID</th><th>Book ID</th><th>Issue Date</th><th>Due Date</th><th>Status</th><th>Fine</th></tr></thead>
+            <tbody id="myLoansBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REQUEST BOOK TAB -->
+      <div id="tab-requestBook" class="tab-content">
+        <div class="card">
+          <h3>Request a New Book</h3>
+          <div class="form-row">
+            <input type="text" id="reqTitle" placeholder="Book Title" />
+            <input type="text" id="reqAuthor" placeholder="Author" />
+          </div>
+          <div class="form-row">
+            <input type="text" id="reqIsbn" placeholder="ISBN (optional)" />
+            <input type="text" id="reqRemarks" placeholder="Remarks (optional)" />
+          </div>
+          <button class="btn btn-primary" onclick="submitRequest()">Submit Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://127.0.0.1:8000';
+  let token = null;
+  let currentUser = null;
+
+  // ─── UTILS ───────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = type;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  async function api(method, path, body = null) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(API + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+    return data;
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    // Load data for the tab
+    if (name === 'manageBooks') loadBooks();
+    if (name === 'loans') loadLoans();
+    if (name === 'bookRequests') loadRequests();
+    if (name === 'manageUsers') loadUsers();
+    if (name === 'catalog') loadCatalog();
+    if (name === 'myLoans') loadMyLoans();
+    if (name === 'dashboard') loadDashboard();
+  }
+
+  function formatDate(d) {
+    if (!d) return '-';
+    return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function statusBadge(s) {
+    const map = { issued: 'badge-blue', returned: 'badge-green', overdue: 'badge-red', pending: 'badge-orange', approved: 'badge-green', rejected: 'badge-red' };
+    return `<span class="badge ${map[s] || 'badge-blue'}">${s}</span>`;
+  }
+
+  // ─── AUTH ────────────────────────────────────────────
+  async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    document.getElementById('loginError').textContent = '';
+    try {
+      const data = await api('POST', '/auth/login', { email, password });
+      token = data.access_token;
+      currentUser = await api('GET', '/auth/me');
+      showPage('appPage');
+      document.getElementById('welcomeText').textContent = `Welcome, ${currentUser.name}!`;
+      document.getElementById('roleText').textContent = `Logged in as ${currentUser.role}`;
+      if (currentUser.role === 'librarian') {
+        document.getElementById('librarianTabs').style.display = 'block';
+        loadDashboard();
+      } else {
+        document.getElementById('studentTabs').style.display = 'block';
+        loadCatalog();
+      }
+    } catch (e) {
+      document.getElementById('loginError').textContent = e.message;
+    }
+  }
+
+  function logout() {
+    token = null;
+    currentUser = null;
+    document.getElementById('librarianTabs').style.display = 'none';
+    document.getElementById('studentTabs').style.display = 'none';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    showPage('loginPage');
+  }
+
+  // ─── DASHBOARD ───────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const [books, loans, overdue, requests] = await Promise.all([
+        api('GET', '/books/'),
+        api('GET', '/loans/?status=issued'),
+        api('GET', '/loans/overdue'),
+        api('GET', '/book-requests/')
+      ]);
+      document.getElementById('statBooks').textContent = books.length;
+      document.getElementById('statLoans').textContent = loans.length;
+      document.getElementById('statOverdue').textContent = overdue.length;
+      document.getElementById('statRequests').textContent = requests.filter(r => r.status === 'pending').length;
+    } catch(e) {}
+  }
+
+  // ─── BOOKS ───────────────────────────────────────────
+  async function loadBooks() {
+    const books = await api('GET', '/books/');
+    const tbody = document.getElementById('booksBody');
+    tbody.innerHTML = books.map(b => `
+      <tr>
+        <td>${b.id}</td>
+        <td>${b.title}</td>
+        <td>${b.author}</td>
+        <td>${b.isbn || '-'}</td>
+        <td>${b.total_copies}</td>
+        <td>${b.available_copies}</td>
+        <td>${b.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Inactive</span>'}</td>
+      </tr>`).join('');
+  }
+
+  async function addBook() {
+    try {
+      await api('POST', '/books/', {
+        title: document.getElementById('bookTitle').value,
+        author: document.getElementById('bookAuthor').value,
+        isbn: document.getElementById('bookIsbn').value || null,
+        total_copies: parseInt(document.getElementById('bookCopies').value)
+      });
+      showToast('Book added successfully!');
+      loadBooks();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // ─── ISSUE / RETURN ──────────────────────────────────
+  async function issueBook() {
+    try {
+      await api('POST', '/loans/issue', {
+        user_id: parseInt(document.getElementById('issueUserId').value),
+        book_id: parseInt(document.getElementById('issueBookId').value)
+      });
+      showToast('Book issued successfully!');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function returnBook() {
+    try {
+      const result = await api('POST', `/loans/${document.getElementById('returnLoanId').value}/return`);
+      document.getElementById('returnResult').textContent =
+        `✅ Returned! Fine: ₹${result.fine_amount} | Overdue days: ${result.overdue_days}`;
+      showToast('Book returned successfully!');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // ─── LOANS ───────────────────────────────────────────
+  async function loadLoans(status = null) {
+    const url = status === 'overdue' ? '/loans/overdue' : `/loans/${status ? '?status=' + status : ''}`;
+    const loans = await api('GET', url);
+    document.getElementById('loansBody').innerHTML = loans.map(l => `
+      <tr>
+        <td>${l.id}</td>
+        <td>${l.user_id}</td>
+        <td>${l.book_id}</td>
+        <td>${formatDate(l.issue_date)}</td>
+        <td>${formatDate(l.due_date)}</td>
+        <td>${statusBadge(l.status)}</td>
+        <td>₹${l.fine_amount}</td>
+      </tr>`).join('');
+  }
+
+  // ─── BOOK REQUESTS ───────────────────────────────────
+  async function loadRequests() {
+    const reqs = await api('GET', '/book-requests/');
+    document.getElementById('requestsBody').innerHTML = reqs.map(r => `
+      <tr>
+        <td>${r.id}</td>
+        <td>${r.title}</td>
+        <td>${r.author}</td>
+        <td>${r.user_id}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>
+          ${r.status === 'pending' ? `
+            <button class="btn btn-success" style="padding:4px 10px; font-size:12px;" onclick="updateRequest(${r.id}, 'approve')">Approve</button>
+            <button class="btn btn-danger" style="padding:4px 10px; font-size:12px;" onclick="updateRequest(${r.id}, 'reject')">Reject</button>
+          ` : '-'}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function updateRequest(id, action) {
+    try {
+      await api('PATCH', `/book-requests/${id}/${action}`);
+      showToast(`Request ${action}d!`);
+      loadRequests();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // ─── USERS ───────────────────────────────────────────
+  async function loadUsers(role = null) {
+    const users = await api('GET', `/users/${role ? '?role=' + role : ''}`);
+    document.getElementById('usersBody').innerHTML = users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td>${statusBadge(u.role === 'librarian' ? 'approved' : 'pending')}</td>
+        <td>${u.is_active ? '<span class="badge badge-green">Yes</span>' : '<span class="badge badge-red">No</span>'}</td>
+      </tr>`).join('');
+  }
+
+  // ─── STUDENT: CATALOG ────────────────────────────────
+  async function loadCatalog() {
+    const books = await api('GET', '/books/catalog/all');
+    document.getElementById('catalogBody').innerHTML = books.map(b => `
+      <tr>
+        <td>${b.id}</td>
+        <td>${b.title}</td>
+        <td>${b.author}</td>
+        <td>${b.available_copies}</td>
+        <td>${b.total_copies}</td>
+        <td>${formatDate(b.expected_return_date)}</td>
+        <td>${b.waitlist_count}</td>
+        <td>
+          ${b.available_copies === 0 ?
+            `<button class="btn btn-warning" style="padding:4px 10px; font-size:12px;" onclick="joinWaitlist(${b.id})">Join Waitlist</button>` :
+            `<span class="badge badge-green">Available</span>`}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function joinWaitlist(bookId) {
+    try {
+      await api('POST', '/waitlist/join', { book_id: bookId });
+      showToast('Joined waitlist!');
+      loadCatalog();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // ─── STUDENT: MY LOANS ───────────────────────────────
+  async function loadMyLoans() {
+    const loans = await api('GET', `/loans/student/${currentUser.id}`);
+    document.getElementById('myLoansBody').innerHTML = loans.map(l => `
+      <tr>
+        <td>${l.id}</td>
+        <td>${l.book_id}</td>
+        <td>${formatDate(l.issue_date)}</td>
+        <td>${formatDate(l.due_date)}</td>
+        <td>${statusBadge(l.status)}</td>
+        <td>₹${l.fine_amount}</td>
+      </tr>`).join('');
+  }
+
+  // ─── STUDENT: REQUEST ────────────────────────────────
+  async function submitRequest() {
+    try {
+      await api('POST', '/book-requests/', {
+        title: document.getElementById('reqTitle').value,
+        author: document.getElementById('reqAuthor').value,
+        isbn: document.getElementById('reqIsbn').value || null,
+        remarks: document.getElementById('reqRemarks').value || null
+      });
+      showToast('Book request submitted!');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // Allow pressing Enter to login
+  document.getElementById('loginPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>
