@@ -1,0 +1,41 @@
+# Environment variables (CRITICAL)
+
+.env
+
+# Custom files
+
+App/commands.txt
+commands.txt
+prompts.txt
+
+# Python cache
+
+**pycache**/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+
+venv/
+.env/
+ENV/
+
+# VS Code / IDE
+
+.vscode/
+.idea/
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Logs
+
+*.log
+
+# SQLite (if used accidentally)
+
+*.sqlite3

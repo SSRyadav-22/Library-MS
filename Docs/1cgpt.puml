@@ -1,0 +1,131 @@
+@startuml
+title Library Management System – High-Level Flow
+
+start
+
+:'User (Student or Librarian)' as U;
+:Open client/UI and choose action;
+
+'=== AUTHENTICATION ==='
+if (Has JWT access token?) then (no)
+  :Login screen;
+  :POST /auth/login (email, password);
+  :Verify credentials\n(core/security + crud.user);
+  if (Valid?) then (yes)
+    :Create JWT {sub: user_id, role, exp};
+    :Return access_token;
+  else (no)
+    :Show error\n"Invalid credentials";
+    stop
+  endif
+endif
+
+:Call API with\nAuthorization: Bearer <token>;
+:Dependency get_current_user\n(api/deps.py) loads user & role;
+
+if (User active & token valid?) then (yes)
+else (no)
+  :Return 401 (unauthorized);
+  stop
+endif
+
+'=== MAIN MENU ==='
+if (Role == librarian?) then (yes)
+  :Librarian home\n(dashboard, counts, shortcuts);
+
+  if (Choose action) then
+    --> [Manage books]
+      :View/add/update books\n(api/routes/books.py);
+      :Use crud.book + models\nfor DB changes;
+      :Maintain total_copies /\navailable_copies;
+
+    --> [Manage issues/returns]
+      :Open issue/return screen;
+
+      if (Issue book) then (yes)
+        :Select student + book;
+        :Call issue_service.issue_book();
+        :Begin DB transaction;
+        :Check available_copies > 0;
+        :Check student has no\nactive issue for same book;
+        :Insert issued_books row\n(issue_date, due_date = +7 days,\nstatus='issued');
+        :Decrement books.available_copies;
+        :Commit transaction;
+        :Return success / errors;
+      endif
+
+      if (Return book) then (yes)
+        :Select active loan;
+        :Call issue_service.return_book();
+        :Begin DB transaction;
+        :Set return_date;
+        :Compute days_late & fine\n(fine = days_late * 5);
+        :Update status to\n'returned' or keep 'overdue' history;
+        :Check waitlist for book\n(waitlist_service);
+        if (Waitlist exists?) then (yes)
+          :Pick first in queue\n(FIFO);
+          :Create new issue/reservation\nfor that student\n(or mark for priority issue);
+          :Remove/cancel queue entry;
+          'No general increment of\navailable_copies in this case'
+        else (no)
+          :Increment books.available_copies;
+        endif
+        :Commit transaction;
+        :Return updated loan/fine info;
+      endif
+
+      if (Check overdue/fines) then (yes)
+        :Call issue_service.list_overdue();
+        :Use due_date < today AND\nreturn_date IS NULL;
+        :Show overdue loans and\ncurrent fine amounts;
+      endif
+
+    --> [View/manage waitlist]
+      :View waitlist per book\n(api/routes/waitlist.py);
+      :Optionally skip/cancel\nentries via waitlist_service;
+
+    --> [Review book requests]
+      :View student book_requests;
+      :Approve / reject requests;
+      :(Optional) add new book\nfor approved ones;
+
+  endif
+
+else (no - student)
+  :Student home\n(catalog, my loans,\nwaitlist, requests);
+
+  if (Choose action) then
+    --> [Browse/view books]
+      :GET /catalog/books;
+      :See availability and\nexpected return date;
+      :Can only view (no direct issue);
+
+    --> [Join waitlist]
+      :Select unavailable book;
+      :POST /books/{id}/waitlist;
+      :waitlist_service.join_queue():
+      :Validate no active loan\nfor this book;
+      :Validate not already\nqueued for this book;
+      :Insert waitlist entry\nwith position/timestamp;
+
+    --> [View my loans]
+      :GET /students/{id}/loans;
+      :Show active + past loans\nand fines;
+
+    --> [Request new book]
+      :Submit title/author\n(book_requests);
+      :Status starts as 'pending';
+
+  endif
+endif
+
+'=== SHARED INFRA ==='
+:All routes use:
+- api/deps for auth & role
+- crud/* for DB access
+- services/* for domain logic
+- models.py for SQLAlchemy mapping;
+
+stop
+
+@enduml
